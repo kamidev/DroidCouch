@@ -2,5 +2,5 @@ DroidCouch is a minimal Android library for using CouchDB, licensed under the MI
 
 Our intention is to make a small Java library well suited for Android mobile development. 
 
-DroidCouch was inpired by Divan (http://github.com/foretagsplatsen/Divan), a C# library with a more or less complete CouchDB API. Initiated by Jonas Beckman, DroidCouch is currently developed in-house at MSC Konsult AB.
+DroidCouch was inpired by Divan (github.com/foretagsplatsen/Divan), a C# library with a more or less complete CouchDB API. Initiated by Jonas Beckman, DroidCouch is currently developed in-house at MSC Konsult AB.
 
