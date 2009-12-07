@@ -8,8 +8,7 @@ import android.widget.TextView;
 
 public class TestClient extends Activity {
 
-    //String HOST = "ADD_YOUR_OWN_COUCHDB_SERVER_HERE";
-    String HOST = "http://wm.gjallar.se:5984/";
+    String HOST = "ADD_YOUR_OWN_COUCHDB_SERVER_HERE";
 
     String DBNAME = "hackathon_2";
     String TEST_DOC_ID = "test_document_1";
