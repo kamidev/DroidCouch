@@ -19,7 +19,7 @@ import org.json.JSONObject;
 import android.util.Log;
 
 public class DroidCouch {
-    private static final String TAG = "DroidCouchLibrary";
+    static final String TAG = "DroidCouchLibrary";
 
     public static String convertStreamToString(InputStream is) {
         /*
