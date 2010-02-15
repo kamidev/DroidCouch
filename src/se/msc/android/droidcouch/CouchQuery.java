@@ -210,7 +210,7 @@ public class CouchQuery {
 		}   
     }
 
-    public boolean IsCachedAndValid() throws ClientProtocolException, IOException
+    public boolean IsCachedAndValid() 
     {
         // If we do not have a result it is not cached
         if (Result == null)
@@ -219,7 +219,11 @@ public class CouchQuery {
         }
         CouchRequest req = View.Request().QueryOptions(Options);
         req.Etag(Result.etag);
-        return req.Head().Send().IsETagValid();
+        try {
+        	return req.Head().Send().IsETagValid();
+        } catch (Exception e) {
+        	return false;
+        }
     }
 
 

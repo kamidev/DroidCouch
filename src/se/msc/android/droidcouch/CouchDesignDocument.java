@@ -142,7 +142,7 @@ public class CouchDesignDocument extends CouchDocument {
     /// If this design document is missing in the database,
     /// or if it is different - then we save it overwriting the one in the db.
     /// </summary>
-    public void Synch() throws Exception
+    public void Synch() throws CouchException 
     {
         if (!Owner.HasDocument(this)) {
             Owner.SaveDocument(this);

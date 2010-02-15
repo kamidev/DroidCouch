@@ -35,7 +35,7 @@ public class CouchGenericViewResult extends CouchViewResult {
     /// </summary>
     /// <typeparam name="T">Type of documents.</typeparam>
     /// <returns>List of documents found.</returns>
-    public <T extends ICouchDocument> List<T> Documents(Class<T> c) throws JSONException
+    public <T extends ICouchDocument> List<T> Documents(Class<T> c) 
     {
         return RetrieveDocuments(c,"doc");
     }
@@ -44,11 +44,11 @@ public class CouchGenericViewResult extends CouchViewResult {
     /// Return all found docs as CouchJsonDocuments.
     /// </summary>
     /// <returns>List of documents found.</returns>
-  /*  public List<CouchJsonDocument> Documents()
+    public List<CouchJsonDocument> Documents() 
     {
-        return RetrieveDocuments<CouchJsonDocument>("doc");
+        return RetrieveDocuments(CouchJsonDocument.class,"doc");
     }
-*/
+
     /// <summary>
     /// Return first document found as document of given type
     /// </summary>
@@ -59,7 +59,7 @@ public class CouchGenericViewResult extends CouchViewResult {
         return RetrieveDocument(c,"doc");
     }
 
-    protected <T extends ICanJson> List<T> RetrieveDocuments(Class<T> c, String docOrValue) throws JSONException
+    protected <T extends ICanJson> List<T> RetrieveDocuments(Class<T> c, String docOrValue)
     {
 		List<T> list = new ArrayList<T>();
 		JSONArray rows = this.Rows();
@@ -94,22 +94,25 @@ public class CouchGenericViewResult extends CouchViewResult {
         return null;
     }
 
-    public <T extends ICanJson> List<T> RowDocuments(Class<T> c) throws Exception
+    public <T extends ICanJson> List<T> RowDocuments(Class<T> c) 
     {
     	List<T> list = new ArrayList<T>();
     	JSONArray rows = Rows();
 		for (int i = 0; i< rows.length(); i++)
 		{
-			JSONObject row = rows.getJSONObject(i);
-			T inst = c.newInstance();
-			inst.ReadJson(row);
-			list.add(inst);
+			JSONObject row = rows.optJSONObject(i);
+			try {
+				T inst = c.newInstance();
+				inst.ReadJson(row);
+				list.add(inst);
+			} catch (Exception e) {
+			}
 		}
    	
         return list; //RetrieveDocuments<CouchQueryDocument>();
     }
 
-   public List<CouchQueryDocument> RowDocuments() throws Exception
+   public List<CouchQueryDocument> RowDocuments() 
    {
 	   return RowDocuments(CouchQueryDocument.class);
    }

@@ -11,22 +11,30 @@ public class CouchJsonDocument implements ICouchDocument {
     protected String Rev;
     public JSONObject Obj;
     
-	public CouchJsonDocument(String json, String id, String rev) throws JSONException
+    private JSONObject newJson(String json) {
+    	try {
+    		return new JSONObject(json);
+    	} catch (JSONException e) { 
+   		}
+		return new JSONObject(); 
+    }
+    
+	public CouchJsonDocument(String json, String id, String rev)
     {
-        Obj = new JSONObject(json);
-        Id = id;
-        Rev = rev;
+		Obj = newJson(json);
+		Id = id;
+		Rev = rev;
     }
 
-    public CouchJsonDocument(String json, String id) throws JSONException
+    public CouchJsonDocument(String json, String id)
     {
-        Obj = new JSONObject(json);
-        Id = id;
+   		Obj = newJson(json);
+   		Id = id;
     }
 
-    public CouchJsonDocument(String json) throws JSONException
+    public CouchJsonDocument(String json) 
     {
-        Obj = new JSONObject(json);
+   		Obj = newJson(json);
     }
 
     public CouchJsonDocument(JSONObject doc)

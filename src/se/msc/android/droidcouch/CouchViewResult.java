@@ -23,9 +23,15 @@ public class CouchViewResult {
         return (int)result.getLong("offset");
     }
 
-    public JSONArray Rows() throws JSONException
+    public JSONArray Rows()
     {
-    	return result.getJSONArray("rows");
+    	try {
+    		return result.getJSONArray("rows");
+    	} catch (JSONException e) {
+    		
+    	}
+    	
+    	return new JSONArray();
         //return result["rows"].Children();
     }
 

@@ -73,11 +73,14 @@ public class CouchDatabase {
     /// And we also do not remove design documents in the database that
     /// we no longer have in code.
     /// </summary>
-    public void SynchDesignDocuments() throws Exception
+    public void SynchDesignDocuments()
     {
         for (CouchDesignDocument doc: DesignDocuments)
         {
-            doc.Synch();
+            try {
+				doc.Synch();
+			} catch (CouchException e) {
+			}
         }
     }
 
@@ -196,7 +199,7 @@ public class CouchDatabase {
     /// <returns>Couch Document with new Rev set.</returns>
     /// <remarks>This relies on the document to already have an id.</remarks>
     public ICouchDocument
-        WriteDocument(ICouchDocument document) throws CouchException, JSONException
+        WriteDocument(ICouchDocument document) throws CouchException
     {
         return WriteDocument(document, false);
     }
@@ -208,7 +211,7 @@ public class CouchDatabase {
     /// </summary>
     /// <param name="document">Couch document</param>
     /// <returns>Couch Document with new Rev set and possibly an Id set.</returns>
-    public ICouchDocument SaveDocument(ICouchDocument document) throws CouchException, JSONException
+    public ICouchDocument SaveDocument(ICouchDocument document) throws CouchException
     {
         if (document.Id() == null)
         {
@@ -224,7 +227,7 @@ public class CouchDatabase {
     /// <param name="batch">True if we don't want to wait for flush (commit).</param>
     /// <returns>Couch Document with new Rev set.</returns>
     /// <remarks>This relies on the document to already have an id.</remarks>
-    public ICouchDocument WriteDocument(ICouchDocument document, boolean batch) throws CouchException, JSONException
+    public ICouchDocument WriteDocument(ICouchDocument document, boolean batch) throws CouchException
     {
         if (document.Id() == null)
         {
@@ -233,8 +236,8 @@ public class CouchDatabase {
         }
         JSONObject result =
             Request(document.Id()).Query(batch ? "?batch=ok" : null).Data(CouchDocument.WriteJson(document)).Put().Check("Failed to write document").Result();
-        document.Id(result.getString("id")); // Not really neeed
-        document.Rev(result.getString("rev"));
+        document.Id(result.optString("id")); // Not really neeed
+        document.Rev(result.optString("rev"));
 
         return document;
     }
@@ -247,7 +250,7 @@ public class CouchDatabase {
     /// <param name="mimeType">The MIME type for the attachment.</param>
     /// <returns>The document.</returns>
     /// <remarks>This relies on the document to already have an id.</remarks>
-    public ICouchDocument WriteAttachment(ICouchDocument document, String attachment, String mimeType) throws CouchException, JSONException
+    public ICouchDocument WriteAttachment(ICouchDocument document, String attachment, String mimeType) throws CouchException
     {
         if (document.Id() == null)
         {
@@ -257,8 +260,8 @@ public class CouchDatabase {
         JSONObject result =
             Request(document.Id() + "/attachment").Query("?rev=" + document.Rev()).Data(attachment).MimeType(mimeType).Put().Check("Failed to write attachment")
                 .Result();
-        document.Id(result.getString("id")); // Not really neeed
-        document.Rev(result.getString("rev"));
+        document.Id(result.optString("id")); // Not really neeed
+        document.Rev(result.optString("rev"));
 
         return document;
     }
@@ -267,9 +270,13 @@ public class CouchDatabase {
     /// Read a ICouchDocument with an id even if it has not changed revision.
     /// </summary>
     /// <param name="document">Document to fill.</param>
-    public void ReadDocument(ICouchDocument document) throws Exception
+    public void ReadDocument(ICouchDocument document) 
     {
-        document.ReadJson(ReadDocument(document.Id()));
+    	try {
+    		document.ReadJson(ReadDocument(document.Id()));
+    	} catch (Exception e) {
+       	
+        }
     }
 
     /// <summary>
@@ -348,7 +355,7 @@ public class CouchDatabase {
     /// <param name="json">Json data to store.</param>
     /// <returns>Couch document with data, id and rev set.</returns>
     /// <remarks>POST which may be problematic in some environments.</remarks>
-    public CouchJsonDocument CreateDocument(String json) throws CouchException, JSONException
+    public CouchJsonDocument CreateDocument(String json) throws CouchException
     {
         return (CouchJsonDocument) CreateDocument(new CouchJsonDocument(json));
     }
@@ -470,39 +477,41 @@ public class CouchDatabase {
     /// Get multiple documents.
     /// </summary>
     /// <param name="documentIds">List of documents to get.</param>
-    public <T extends ICouchDocument> List<T> GetDocuments(Class<T> c, List<String> documentIds) throws JSONException, CouchException
+    public <T extends ICouchDocument> List<T> GetDocuments(Class<T> c, List<String> documentIds)
     {
         return GetDocuments(c, (String[])documentIds.toArray());
     }
 
-    public List<CouchJsonDocument> GetDocuments(List<String> documentIds) throws JSONException, CouchException
+    public List<CouchJsonDocument> GetDocuments(List<String> documentIds)
     {
         return GetDocuments(CouchJsonDocument.class,documentIds);
     }
 
-    public List<CouchJsonDocument> GetDocuments(String[] documentIds) throws JSONException, CouchException
+    public List<CouchJsonDocument> GetDocuments(String[] documentIds) 
     {
         return GetDocuments(CouchJsonDocument.class,documentIds);
     }
 
-    public <T extends ICouchDocument> List<T> GetDocuments(Class<T> c, String[] documentIds) throws JSONException, CouchException
+    public <T extends ICouchDocument> List<T> GetDocuments(Class<T> c, String[] documentIds) 
     {
     	CouchBulkKeys bulk = new CouchBulkKeys(documentIds);
-        return QueryAllDocuments().Data(CouchDocument.WriteJson(bulk)).IncludeDocuments().GetResult().Documents(c);
+        try {
+			return QueryAllDocuments().Data(CouchDocument.WriteJson(bulk)).IncludeDocuments().GetResult().Documents(c);
+		} catch (CouchException e) {
+			return new ArrayList<T>();
+		}
     }
 
-    public <T extends ICouchDocument> T GetDocument(Class<T> c, String documentId) throws Exception
+    public <T extends ICouchDocument> T GetDocument(Class<T> c, String documentId)
     {
-    	ICouchDocument doc = c.newInstance();
+    	ICouchDocument doc;
+		try {
+			doc = c.newInstance();
+		} catch (Exception e1) {
+			return null;
+		}
     	doc.Id(documentId);
-        try
-        {
-            ReadDocument(doc);
-        }
-        catch (CouchNotFoundException e)
-        {
-            return null;
-        }
+        ReadDocument(doc);
         return (T)doc;
     }
 
@@ -591,7 +600,7 @@ public class CouchDatabase {
     /// revisions and then use them to post a bulk delete. Couch can not
     /// delete documents without being told about their revisions.
     /// </summary>
-    public void DeleteDocuments(String startKey, String endKey) throws CouchException, Exception
+    public void DeleteDocuments(String startKey, String endKey) throws CouchException
     {
         List<CouchQueryDocument> docs = QueryAllDocuments().StartKey(startKey).EndKey(endKey).GetResult().RowDocuments();
         DeleteDocuments((ICouchDocument[] )docs.toArray());

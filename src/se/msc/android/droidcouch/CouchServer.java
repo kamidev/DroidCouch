@@ -83,7 +83,7 @@ public class CouchServer {
     /// Get a CouchDatabase with given name.
     /// We create the database if it does not exist.
     /// </summary>
-    public CouchDatabase GetDatabase(String name) throws Exception
+    public CouchDatabase GetDatabase(String name) throws CouchException 
     {
         return GetDatabase(CouchDatabase.class, name);
     }
@@ -156,11 +156,15 @@ public class CouchServer {
     /// Get specialized subclass of CouchDatabase with given name.
     /// We ensure that it is created.
     /// </summary>
-    public <T extends CouchDatabase> T GetDatabase(Class<T> c, String name) throws Exception
+    public <T extends CouchDatabase> T GetDatabase(Class<T> c, String name) throws CouchException 
     {
-        T db = GetExistingDatabase(c, name);
-        db.Create();
-        return db;
+    	try {
+	        T db = GetExistingDatabase(c, name);
+	        db.Create();
+	        return db;
+    	} catch (Exception e){
+    		throw CouchException.Create("GetDatabase", e);
+    	}
     }
 
 
@@ -211,15 +215,18 @@ public class CouchServer {
         }
     }
 
-    public List<String> GetDatabaseNames() throws JSONException
+    public List<String> GetDatabaseNames() 
     {
 
     	String list = Request().Path("_all_dbs").Get().String();
-    	JSONArray dbs = new JSONArray(list);
+    	JSONArray dbs = new JSONArray();
+    	try {
+    		dbs = new JSONArray(list);
+    	} catch (JSONException e) { }
     	
     	List<String> result = new ArrayList<String>(); 
     	for (int i = 0; i< dbs.length(); i++) {
-    		result.add(dbs.getString(i));
+    		result.add(dbs.optString(i));
     	}
     	return result;
     }
